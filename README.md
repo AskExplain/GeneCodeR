@@ -1,2 +1,2 @@
 # GeneCodeR
-Perturbing the spatial coding of genes on imaging tissue
+Perturbing the spatial gene codes on imaging tissue
