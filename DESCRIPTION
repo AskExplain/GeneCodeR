@@ -1,0 +1,11 @@
+Package: GeneCodeR
+Type: Package
+Title: Transforms between image and gene expression modalities from Spatial Transcriptomics
+Version: 2022.1
+Author: David Banh from AskExplain
+Maintainer: The package maintainer <david.b@askexplain.com>
+Description: A model that aligns gene expression patterns to image patterns which creates a transform path between modalities
+License: MIT License
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.2
