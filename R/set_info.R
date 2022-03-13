@@ -1,3 +1,6 @@
+#' extract_config_framework - the configuration framework for GeneCodeR
+#'
+#' @param verbose - set to TRUE to print out the config parameters, to be editted
 #' @export
 extract_config_framework <- function(verbose=F){
 
@@ -19,7 +22,9 @@ extract_config_framework <- function(verbose=F){
   return(config)
 }
 
-
+#' extract_meta_framework - the meta information framework for GeneCodeR
+#'
+#' @param verbose - set to TRUE to print out the meta information, to be editted
 #' @export
 extract_meta_framework <- function(verbose=F){
 
@@ -88,6 +93,10 @@ extract_meta_framework <- function(verbose=F){
 
 
 
+
+#' extract_path_framework - the path list framework for GeneCodeR
+#'
+#' @param verbose - set to TRUE to print out the path list, to be editted
 #' @export
 extract_path_framework <- function(verbose=F){
 

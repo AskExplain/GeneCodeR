@@ -1,5 +1,9 @@
 #' GeneCodeR - Perturbing imaging tissue by altering spatial gene codes
 #'
+#' @param model - the learned model via Generative Encoding
+#' @param x - the dataset to be transformed
+#' @param config - the GeneCodeR configuration parameters to define the modality coming from and going to
+#'
 #' @export
 genecoder <- function(model,x,config){
 
@@ -10,18 +14,31 @@ genecoder <- function(model,x,config){
 }
 
 
+#' genecoder.transform - transform between modalities
+#'
+#' @param model - the learned model via Generative Encoding
+#' @param x - the dataset to be transformed
+#' @param config.transform - the transform list within the GeneCodeR configuration parameters to define the modality coming from and going to
+#'
 #' @export
-genecoder.transform <- function(model,x,config){
+genecoder.transform <- function(model,x,config.transform){
 
-  beta.2 <- (model$main.parameters$beta[[config$from]]%*%t(model$main.code$incode[[config$from]]%*%model$main.parameters$beta.code[[1]]))
-  beta.1 <- (model$main.parameters$beta[[config$to]]%*%t(model$main.code$incode[[config$to]]%*%model$main.parameters$beta.code[[1]]))
+  beta.2 <- (model$main.parameters$beta[[config.transform$from]]%*%t(model$main.code$incode[[config.transform$from]]%*%model$main.parameters$beta.code[[1]]))
+  beta.1 <- (model$main.parameters$beta[[config.transform$to]]%*%t(model$main.code$incode[[config.transform$to]]%*%model$main.parameters$beta.code[[1]]))
 
-  return(as.matrix((x) - c(model$main.parameters$intercept[[config$from]]))%*%beta.2%*%MASS::ginv(t(beta.2)%*%(beta.2))%*%t(beta.1) + c(model$main.parameters$intercept[[config$to]]))
+  return(as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2%*%MASS::ginv(t(beta.2)%*%(beta.2))%*%t(beta.1) + c(model$main.parameters$intercept[[config.transform$to]]))
 
 }
 
-
-#' @export
+#' learn_model - learns the Generative Encoder model
+#'
+#' @param data_list List of data matrices of varying dimensionality. Attempts to find similarities among all datasets with a core structure.
+#' @param config Configuration parameters (required, default provided)
+#' @param transfer Transferring pre-trained model parameters (not required)
+#' @param recover Important information used for prediction or imputation (not required)
+#' @param join Join parameters that share the same axes to be similar (not required)
+#'
+#'#' @export
 learn_model <- function(data_list,
                         config = gcode::extract_config(F),
                         transfer = gcode::extract_transfer_framework(F),
@@ -35,6 +52,14 @@ learn_model <- function(data_list,
 
 }
 
+
+
+#' prepare_gex - prepares gene expression data
+#'
+#' @param file_path_list - a list of files containing the path to all files including the gene expression path
+#' @param meta_info_list - a list of meta information that helps read in files and extracts relevant information
+#' @param config - the main configuration parameters to extract the image pixels for each corresponding spot
+#'
 #' @export
 prepare_gex <- function(file_path_list,
                         meta_info_list,
@@ -67,6 +92,12 @@ prepare_gex <- function(file_path_list,
 
 
 
+#' prepare_spot - prepares image information per spot
+#'
+#' @param file_path_list - a list of files containing the path to all files including the image path
+#' @param meta_info_list - a list of meta information that helps read in files and extracts relevant information
+#' @param config - the main configuration parameters to extract the image pixels for each corresponding spot
+#'
 #' @export
 prepare_spot <- function(file_path_list,
                          meta_info_list,
@@ -87,7 +118,6 @@ prepare_spot <- function(file_path_list,
   return(list(spot=spot_data))
 
 }
-
 
 
 

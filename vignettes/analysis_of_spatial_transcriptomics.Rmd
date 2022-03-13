@@ -26,17 +26,17 @@ library(gridExtra)
 
 Please replace these paths
 
-```{r main_paths, eval=FALSE}
+```{r main_paths}
 
 # Please replace these paths
-path_to_save <- "~/Documents/main_files/AskExplain/GeneCoder/temp_save_dir/"
-path_to_work <- "~/Documents/main_files/AskExplain/GeneCoder/temp_work_dir/"
+path_to_save <- "./temp_save_dir/"
+path_to_work <- "./temp_work_dir/"
 
 ```
 
 Download data and format
 
-```{r set_up_paths, eval=FALSE}
+```{r set_up_paths}
 
 dir.create(path_to_save)
 dir.create(path_to_work)
@@ -60,7 +60,7 @@ GeneCodeR takes in three input files from a generic Spatial Transcriptomic datas
 2 - gene expression 
 3 - images
 
-```{r generate_file_list_for_genecoder, eval=FALSE}
+```{r generate_file_list_for_genecoder}
 
 # Input list of files
 
@@ -73,7 +73,7 @@ file_path_list$pixel$path <- list.files(path_to_work,pattern = ".jpg",full.names
 ```
 
 
-```{r set_up_train_test, eval=FALSE}
+```{r set_up_train_test}
 
 set.seed(1)
 train_ids <- sample(c(1:length(file_path_list$coord$path)),round(length(file_path_list$coord$path)*0.6,0))
@@ -94,7 +94,7 @@ The first set of parameters is information to extract spots - such as spot size,
 
 The second set of parameters is for after the gcode model is learned (via GeneCodeR wrapper). This is to transfrom from one modality, to another modality (for example, from image to gene expression).
 
-```{r set_up_config_for_genecoder, eval=FALSE}
+```{r set_up_config_for_genecoder}
 
 # Set up genecoder configuration parameters
 
@@ -109,7 +109,7 @@ The first set of parameters is to read in the file. Here, example parameters suc
 Importantly, another set of parameters is the factor identifier in the coordinate file - which columns contain the x-coordinates, y-coordinates and the label identifier for the spots? For example, the label identifiers, are given by the rownames indicated by a 0.
 
 
-```{r set_up_meta_info_for_genecoder, eval=FALSE}
+```{r set_up_meta_info_for_genecoder}
 
 # Set up meta information
 
@@ -133,7 +133,7 @@ meta_info_list$coord$factor_id$coord_y <- 2
 
 To run the analysis appropriately, a set of common genes are required for all spots. 
 
-```{r extract_common_gene_list, eval=FALSE}
+```{r extract_common_gene_list}
 
 common_genes <- lapply(c(1:length(file_path_list$gex$path)),function(X){
   print(X)
@@ -146,7 +146,7 @@ meta_info_list$gex$factor$common_genes <- Reduce("intersect",common_genes)
 
 Coordinate labels also need to be extracted.
 
-```{r extract_coordinate_ids, eval=FALSE}
+```{r extract_coordinate_ids}
 
 meta_info_list$coord$factor$labels <- lapply(c(1:length(train_file_path_list$coord$path)),function(X){
   row.names(GeneCodeR::read_file(path = train_file_path_list$coord$path[X], meta_info = meta_info_list$coord$read_file)[[1]])
@@ -156,7 +156,7 @@ meta_info_list$coord$factor$labels <- lapply(c(1:length(train_file_path_list$coo
 
 Gene expression data is extracted using the path list, meta information, and configuration parameters.
 
-```{r from_set_up_extract_gex, eval=FALSE}
+```{r from_set_up_extract_gex}
 
 # Extract gex data
 gex_data <- GeneCodeR::prepare_gex(file_path_list = train_file_path_list,meta_info_list = meta_info_list,config = genecoder.config)
@@ -165,7 +165,7 @@ gex_data <- GeneCodeR::prepare_gex(file_path_list = train_file_path_list,meta_in
 
 Importantly, labels for the meta information from the gene expression data extraction is required for extracting relevant spots that contain gene expression greater than background.
 
-```{r from_set_up_extract_spots, eval=FALSE}
+```{r from_set_up_extract_spots}
 
 # Store meta data
 meta_info_list$gex$factor$labels <- gex_data$labels
@@ -179,7 +179,7 @@ Relevant frameworks are set up to begin learning the Generative Encoder model.
 
 Firstly, set up the data list, which stores the gene expression and spot data.
 
-```{r set_up_data_info_for_model_learning_gcode, eval=FALSE}
+```{r set_up_data_info_for_model_learning_gcode}
 
 # Set up data
 
@@ -192,7 +192,7 @@ The join framework is set up, creating the model structure that learns (1): a si
 Here, only the incode and the beta parameters are set up to learn the individual patterns between genes and images. Given the samples are extracted from the same tissue site (image and genes at the same spot), the sample patterns are shared. The feature patterns and the sample patterns (see first paragraph - genes assigned to expected image patterns of hematoxylin and eosin stains) are mapped to a shared latent space via the alpha and beta codes. For example, the use of image patterns is analogous 
 to pattern matching to the example image spot, the latent codes un-rotate any example image spots until it best fits the image pattern. 
 
-```{r set_up_join_info_for_model_learning_gcode, eval=FALSE}
+```{r set_up_join_info_for_model_learning_gcode}
 
 # Set up join information
 
@@ -209,7 +209,7 @@ join$complete$beta <- c("gex","spot")
 
 Set up configuration information - the dimensions of the encoding space for the samples (i_dim), and the features (j_dim), as well as the dimensions of the latent code (k_dim) are set up. The initialisation for these parameters are set up via the irlba library using partial Singular Value Decomposition.
 
-```{r set_up_config_for_model_learning_gcode, eval=FALSE}
+```{r set_up_config_for_model_learning_gcode}
 
 # Set up gcode config
 
@@ -223,7 +223,7 @@ gcode.config$j_dim <- 100
 
 Run the Generative Encoder model
 
-```{r run_gcode, eval=FALSE}
+```{r run_gcode}
 
 # Set up gcode model
 
@@ -236,7 +236,7 @@ Now begins the testing validation phase...
 
 First extract the test set of the coordinate factor labels.
 
-```{r prepare_test_coordinate_ids, eval=FALSE}
+```{r prepare_test_coordinate_ids}
 
 # Evaluate on test set
 
@@ -249,7 +249,7 @@ meta_info_list$coord$factor$labels <- lapply(c(1:length(test_file_path_list$coor
 
 Next extract the test set of the gene expression data.
 
-```{r prepare_test_gex_data, eval=FALSE}
+```{r prepare_test_gex_data}
 
 # Extract test gex data
 test_gex_data <- GeneCodeR::prepare_gex(file_path_list = test_file_path_list,meta_info_list = meta_info_list,config = genecoder.config)
@@ -258,9 +258,9 @@ meta_info_list$gex$factor$labels <- test_gex_data$labels
 ```
 
 
-Save relevant information, including the model, the test meta information, and the test gene expression data.
+Save relevant information, including the model, the test meta information, the test file list and the test gene expression data.
 
-```{r save_important_files_for_validation, eval=FALSE}
+```{r save_important_files_for_validation}
 
 save(genecoder.model,file = paste(sep="",path_to_save,"genecoder.RData"))
 save(test_gex_data,file = paste(sep="",path_to_save,"test_gex.RData"))
@@ -277,8 +277,8 @@ Remove all files to clean up space for validation
 rm(list=ls());gc()
 
 # Restore paths
-path_to_save <- "~/Documents/main_files/AskExplain/GeneCoder/temp_save_dir/"
-path_to_work <- "~/Documents/main_files/AskExplain/GeneCoder/temp_work_dir/"
+path_to_save <- "./temp_save_dir/"
+path_to_work <- "./temp_work_dir/"
 
 ```
 
@@ -288,6 +288,7 @@ Reload important files recently saved:
 1 - model learned
 2 - test gene expression data
 3 - test meta information 
+4 - test file path information 
 
 ```{r reload_important_files}
 
@@ -348,12 +349,11 @@ return(
 
 ```
 
+![Base validation](./base_validation.png)
 
 Base validation is used to directly compare observed gene expression with transformed image spots representing gene expression via pattern matching and weight assignment. Cosine similarity is used to compare the observed and the transformed.
 
-![Base validation](./base_validation.png)
-
-```{r base_validation, eval=FALSE}
+```{r base_validation}
 
 # Base testing
 
@@ -408,13 +408,11 @@ ggsave(final_plots,filename = paste(path_to_save,"/jpeg_accuracy_gcode_",tissue_
 ```
 
 
+![Rotation validation](./rotation_validation.png)
 
 Rotation testing is used to evaluate how rotated images affect the differences between the rotated image transformed to gene expression and the observed gene expression. It is expected that regardless of rotation, the gene expression should not be statistically significantly different across rotated images transformed to gene expression.
 
-![Rotation validation](./rotation_validation.png)
-
-
-```{r rotation_validation, eval=FALSE}
+```{r rotation_validation}
 
 # Spatial rotation testing
 
@@ -446,9 +444,10 @@ print(c("rotate p-value",paste(c("0vs90:    ","0vs180:    ","0vs270:    "),round
 
 ```
 
+![Displacement validation](./displace_validation.png)
+
 Displacement testing is used to evaluate how gene levels change when the image spot is displaced from where gene expression is experimentally measured. It is expected that as the displacement increases, the gene expression difference should become more statistically significantly different.
 
-![Displacement validation](./displace_validation.png)
 
 ```{r displacement_validation}
 
@@ -482,12 +481,12 @@ print(c("displace p-value",paste(c("0vs2:    ","0vs4:    ","0vs8:    "),round(do
 
 ```
 
+![Similarity validation](./similarity_validation.png)
 
 Similarity testing is used to evaluate how similar displaced image spots are to the experimentally observed spot (for example, when both images overlap). It is expected that similar spots should not be statistically significantly different in gene expression levels. 
 
-![Similarity validation](./similarity_validation.png)
 
-```{r similarity_validation, eval=FALSE}
+```{r similarity_validation}
 
 # Spatial similarity testing
 
@@ -540,9 +539,9 @@ print(c("similar p-value",paste(c("0,0vs(-)3,(-)3:    ","0,0vs3,(-)3:    ","0,0v
 ```
 
 
+![Signal validation](./signal_validation.png)
 
 Signal testing is used to evaluate how gene expression signals change over a spatial region when the example image spot slides over a spatial region. It is expected that the gene expression should represent a signal, such that a smoothing model can be learned with a reasonable and flexible fit.
-![Signal validation](./signal_validation.png)
 
 ```{r signal_validation}
 

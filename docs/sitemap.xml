@@ -16,9 +16,30 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/reference/extract_config_framework.html</loc>
+  </url>
+  <url>
+    <loc>/reference/extract_meta_framework.html</loc>
+  </url>
+  <url>
+    <loc>/reference/extract_path_framework.html</loc>
+  </url>
+  <url>
     <loc>/reference/genecoder.html</loc>
   </url>
   <url>
+    <loc>/reference/genecoder.transform.html</loc>
+  </url>
+  <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/learn_model.html</loc>
+  </url>
+  <url>
+    <loc>/reference/prepare_gex.html</loc>
+  </url>
+  <url>
+    <loc>/reference/prepare_spot.html</loc>
   </url>
 </urlset>
