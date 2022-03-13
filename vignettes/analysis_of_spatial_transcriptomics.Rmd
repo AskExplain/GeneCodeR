@@ -450,7 +450,7 @@ Displacement testing is used to evaluate how gene levels change when the image s
 
 ![Displacement validation](./displace_validation.png)
 
-```{r displacement_validation, eval = FALSE}
+```{r displacement_validation}
 
 # Spatial displacement testing
 
@@ -544,7 +544,7 @@ print(c("similar p-value",paste(c("0,0vs(-)3,(-)3:    ","0,0vs3,(-)3:    ","0,0v
 Signal testing is used to evaluate how gene expression signals change over a spatial region when the example image spot slides over a spatial region. It is expected that the gene expression should represent a signal, such that a smoothing model can be learned with a reasonable and flexible fit.
 ![Signal validation](./signal_validation.png)
 
-```{r signal_validation, eval = FALSE}
+```{r signal_validation}
 
 # Spatial signal testing
 
