@@ -1,12 +1,12 @@
 Package: GeneCodeR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Transforms between image and gene expression modalities from Spatial Transcriptomics
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: David Banh from AskExplain
+Maintainer: The package maintainer <david.b@askexplain.com>
+Questions: Send questions to <help@askexplain.com>
+Description: A model that aligns gene expression patterns to image patterns which creates a transform path between modalities
+License: MIT License
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
