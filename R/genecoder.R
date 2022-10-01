@@ -5,9 +5,9 @@
 #' @param config - the GeneCodeR configuration parameters to define the modality coming from and going to
 #'
 #' @export
-genecoder <- function(model,x,config){
+genecoder <- function(model,x,model_type,config){
 
-  transform.info <- genecoder.transform(model,x,config$transform)
+  transform.info <- genecoder.transform(model,x,model_type,config$transform)
 
   return(transform.info)
 
@@ -21,14 +21,27 @@ genecoder <- function(model,x,config){
 #' @param config.transform - the transform list within the GeneCodeR configuration parameters to define the modality coming from and going to
 #'
 #' @export
-genecoder.transform <- function(model,x,config.transform){
+genecoder.transform <- function(model,x,model_type,config.transform){
 
-  beta.2 <- (model$main.parameters$beta[[config.transform$from]]%*%t(model$main.code$incode[[config.transform$from]]%*%model$main.parameters$beta.code[[1]]))
-  beta.1 <- (model$main.parameters$beta[[config.transform$to]]%*%t(model$main.code$incode[[config.transform$to]]%*%model$main.parameters$beta.code[[1]]))
+  if (model_type == "gcode"){
+    beta.2_signal <- (model$main.parameters$beta_signal[[config.transform$from]])
+    beta.1_signal <- (model$main.parameters$beta_signal[[config.transform$to]])
 
-  return(as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2%*%MASS::ginv(t(beta.2)%*%(beta.2))%*%t(beta.1) + c(model$main.parameters$intercept[[config.transform$to]]))
+    beta.2_sample <- (model$main.parameters$beta_sample[[config.transform$from]])
+    beta.1_sample <- (model$main.parameters$beta_sample[[config.transform$to]])
+
+    signal2sample_obs <- as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2_signal%*%MASS::ginv(t(beta.2_signal)%*%(beta.2_signal))%*%t(beta.1_sample) + c(model$main.parameters$intercept[[config.transform$to]])
+    sample2signal_obs <- as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2_sample%*%MASS::ginv(t(beta.2_sample)%*%(beta.2_sample))%*%t(beta.1_signal) + c(model$main.parameters$intercept[[config.transform$to]])
+
+    sample_obs <- as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2_sample%*%MASS::ginv(t(beta.2_sample)%*%(beta.2_sample))%*%t(beta.1_sample) + c(model$main.parameters$intercept[[config.transform$to]])
+    signal_obs <- as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2_signal%*%MASS::ginv(t(beta.2_signal)%*%(beta.2_signal))%*%t(beta.1_signal) + c(model$main.parameters$intercept[[config.transform$to]])
+
+
+    return((sample_obs + signal_obs + sample2signal_obs + signal2sample_obs)/4)
+  }
 
 }
+
 
 #' learn_model - learns the Generative Encoder model
 #'
@@ -51,7 +64,6 @@ learn_model <- function(data_list,
   return(gcode.model)
 
 }
-
 
 
 #' prepare_gex - prepares gene expression data
@@ -79,7 +91,7 @@ prepare_gex <- function(file_path_list,
 
     gex_list <- read_file(file_path_list$gex$path[X],meta_info_list$gex$read_file)[[1]]
 
-    select_ids <- meta_info_list$coord$factor$labels[[X]][meta_info_list$coord$factor$labels[[X]] %in% row.names(gex_list)]
+    select_ids <- unique(meta_info_list$coord$factor$labels[[X]][meta_info_list$coord$factor$labels[[X]] %in% row.names(gex_list)])
     main_data <- gex_list[select_ids,meta_info_list$gex$factor$common_genes]
 
     return(list(gex=main_data,labels=row.names(main_data)))
@@ -115,7 +127,7 @@ prepare_spot <- function(file_path_list,
   spot_data <- extract_spots(file_path_list,meta_info_list,config$extract_spots)
 
   print("Done preparation!")
-  return(list(spot=spot_data))
+  return(spot_data)
 
 }
 
@@ -123,7 +135,7 @@ prepare_spot <- function(file_path_list,
 
 #' @export
 extract_spots <- function(file_path_list,meta_info_list,config){
-
+  all_coord_data <- c()
   all_spot_data <- c()
   for (i in 1:length(file_path_list$coord$path)){
     print(paste("Preparing spot      ",i,sep=""))
@@ -136,10 +148,11 @@ extract_spots <- function(file_path_list,meta_info_list,config){
     row.names(spot_data) <- labels
     spot_data <- spot_data[meta_info_list$gex$factor$labels[[i]],]
 
+    all_coord_data <- rbind(all_coord_data,coord_data[meta_info_list$gex$factor$labels[[i]],coord_id])
     all_spot_data <- rbind(all_spot_data,spot_data)
   }
 
-  return(all_spot_data)
+  return(list(spot = as.matrix(all_spot_data),coord = as.matrix(all_coord_data)))
 
 }
 
@@ -157,9 +170,11 @@ extract_pixels <- function(image,coords,displacement_x=0,displacement_y=0,rotati
 
     cropped_image <- magick::image_read(coord_pixels)
     cropped_image <- magick::image_rotate(cropped_image,degrees = rotation)
+    cropped_image <- magick::image_crop(image = cropped_image, geometry = paste(window,"x",window,"+",dim(cropped_image)[1]/2,"+",dim(cropped_image)[2]/2,sep=""))
 
     coord_pixels <- (as.numeric(magick::image_data(cropped_image, 'rgb')))
-
+    coord_pixels[coord_pixels==1] <- 0
+    coord_pixels
   },mc.cores = 8))
 
   return(coord_list)
@@ -192,7 +207,7 @@ read_file <- function(path,meta_info){
 
     return(lapply(path,function(X){
 
-      as.matrix(read.csv(X,sep=",",header = meta_info$meta$header, quote = meta_info$meta$quote, row.names = meta_info$meta$row.names))
+      read.csv(X,sep=",",header = meta_info$meta$header, quote = meta_info$meta$quote, row.names = meta_info$meta$row.names)
 
     }))
 
@@ -202,8 +217,7 @@ read_file <- function(path,meta_info){
 
     return(lapply(path,function(X){
 
-      as.matrix(read.table(X,sep="\t",header = meta_info$meta$header, quote = meta_info$meta$quote, row.names = meta_info$meta$row.names))
-
+      read.table(X,sep="\t",header = meta_info$meta$header, quote = meta_info$meta$quote, row.names = meta_info$meta$row.names)
     }))
 
   }
@@ -212,13 +226,32 @@ read_file <- function(path,meta_info){
 
     return(lapply(path,function(X){
 
-      as.matrix(Matrix::readMM(X))
+      Matrix::readMM(X)
 
     }))
 
   }
 
 }
+
+
+
+#' @export
+convert_to_RGB <- function(x){
+  e <- ecdf(x)
+  j <- e(x)
+  x <- array(j,dim(x))
+  return(x)
+}
+
+
+
+#' @export
+max_min_transform <- function(x){
+  x <- (x+abs(min(x)))/max(x+abs(min(x)))
+  return(x)
+}
+
 
 #' @export
 plot_image <- function(vector_image){
@@ -227,17 +260,23 @@ plot_image <- function(vector_image){
   library(grid)
   library(gridExtra)
 
-  convert_to_RGB <- function(x){
-    e <- ecdf(x)
-    j <- e(x)
-    x <- array(j,dim(x))
-    return(x)
-  }
 
   g <- convert_to_RGB(array((vector_image),dim=c(sqrt(length(vector_image)/3),sqrt(length(vector_image)/3),3)))
+
+  g <- magick::image_read(g)
+  g <- magick::image_rotate(g,degrees = -90)
+  g <- (as.numeric(magick::image_data(g, 'rgb')))
+
   g <- rasterGrob(g, interpolate=TRUE)
   g_plots <- ggplot2::qplot(1:10, 1:10, geom="blank") +
-    annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)
+    annotation_custom(g, xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf) +
+    theme(axis.line=element_blank(),axis.text.x=element_blank(),
+                   axis.text.y=element_blank(),axis.ticks=element_blank(),
+                   axis.title.x=element_blank(),
+                   axis.title.y=element_blank(),legend.position="none",
+                   panel.background=element_blank(),panel.border=element_blank(),panel.grid.major=element_blank(),
+                   panel.grid.minor=element_blank(),plot.background=element_blank()) +
+    theme(plot.title = element_text(size = 16, face = "bold", color="black", hjust=0.5))
 
   return(g_plots)
 
