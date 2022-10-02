@@ -98,7 +98,7 @@ prepare_gex <- function(file_path_list,
   })
 
   print("Done preparation!")
-  return(list(gex=do.call('rbind',lapply(gex_data,function(X){X$gex})),labels=lapply(gex_data,function(X){X$labels})))
+  return(list(gex=lapply(gex_data,function(X){X$gex}),labels=lapply(gex_data,function(X){X$labels})))
 
 }
 
@@ -113,7 +113,8 @@ prepare_gex <- function(file_path_list,
 #' @export
 prepare_spot <- function(file_path_list,
                          meta_info_list,
-                         config
+                         config,
+                         gex_data
 ){
 
   if (!do.call("identical",list(length(file_path_list$coord$path),
@@ -124,7 +125,7 @@ prepare_spot <- function(file_path_list,
   }
 
   print("Extracting spots")
-  spot_data <- extract_spots(file_path_list,meta_info_list,config$extract_spots)
+  spot_data <- extract_spots(file_path_list,meta_info_list,config$extract_spots,gex_data)
 
   print("Done preparation!")
   return(spot_data)
@@ -134,11 +135,14 @@ prepare_spot <- function(file_path_list,
 
 
 #' @export
-extract_spots <- function(file_path_list,meta_info_list,config){
+extract_spots <- function(file_path_list,meta_info_list,config,gex_data){
+  all_meta_data <- c()
   all_coord_data <- c()
   all_spot_data <- c()
+  all_gex_data <- c()
   for (i in 1:length(file_path_list$coord$path)){
     print(paste("Preparing spot      ",i,sep=""))
+    meta_data <- read_file(file_path_list$meta$path[i],meta_info_list$meta$read_file)[[1]]
     coord_data <- read_file(file_path_list$coord$path[i],meta_info_list$coord$read_file)[[1]]
     image_data <- read_file(file_path_list$pixel$path[i],meta_info_list$pixel$read_file)[[1]]
 
@@ -146,13 +150,22 @@ extract_spots <- function(file_path_list,meta_info_list,config){
     coord_id <- c(meta_info_list$coord$factor_id$coord_x,meta_info_list$coord$factor_id$coord_y)
     spot_data <- extract_pixels(image_data,coord_data[,coord_id],displacement_x = config$displacement_x,displacement_y = config$displacement_y,rotation = config$rotation, window = config$window_size)
     row.names(spot_data) <- labels
-    spot_data <- spot_data[meta_info_list$gex$factor$labels[[i]],]
 
-    all_coord_data <- rbind(all_coord_data,coord_data[meta_info_list$gex$factor$labels[[i]],coord_id])
-    all_spot_data <- rbind(all_spot_data,spot_data)
+    row.names(meta_data) <- meta_coords <- apply(do.call('rbind',lapply(strsplit(x = row.names(meta_data),split = "_"),function(X){X[2:3]})),1,function(X){paste0(X,collapse="x")})
+    coord_coords <- row.names(coord_data)
+    spot_coords <- row.names(spot_data)
+    gex_coords <- meta_info_list$gex$factor$labels[[i]]
+
+    all_coords <- Reduce("intersect",list(meta_coords,coord_coords,spot_coords,gex_coords))
+
+    all_coord_data <- rbind(all_coord_data, coord_data[all_coords,])
+    all_spot_data <- rbind(all_spot_data, spot_data[all_coords,])
+    all_meta_data <- rbind(all_meta_data, meta_data[all_coords,])
+    all_gex_data <- rbind(all_gex_data, gex_data[[i]][all_coords,])
+
   }
 
-  return(list(spot = as.matrix(all_spot_data),coord = as.matrix(all_coord_data)))
+  return(list(spot = as.matrix(all_spot_data),coord = as.matrix(all_coord_data), meta = all_meta_data, gex = all_gex_data))
 
 }
 
