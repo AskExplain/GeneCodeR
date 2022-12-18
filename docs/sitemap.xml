@@ -4,10 +4,25 @@
     <loc>/404.html</loc>
   </url>
   <url>
+    <loc>/LICENSE-text.html</loc>
+  </url>
+  <url>
     <loc>/articles/analysis_of_spatial_transcriptomics.html</loc>
   </url>
   <url>
+    <loc>/articles/base_validation.html</loc>
+  </url>
+  <url>
+    <loc>/articles/displacement_validation.html</loc>
+  </url>
+  <url>
     <loc>/articles/index.html</loc>
+  </url>
+  <url>
+    <loc>/articles/rotation_validation.html</loc>
+  </url>
+  <url>
+    <loc>/articles/signal_validation.html</loc>
   </url>
   <url>
     <loc>/authors.html</loc>

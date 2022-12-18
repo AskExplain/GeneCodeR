@@ -1,7 +1,11 @@
-pandoc: 2.17.1.1
-pkgdown: 2.0.2
+pandoc: 2.19.2
+pkgdown: 2.0.6
 pkgdown_sha: ~
 articles:
   analysis_of_spatial_transcriptomics: analysis_of_spatial_transcriptomics.html
-last_built: 2022-03-13T20:53Z
+  base_validation: base_validation.html
+  displacement_validation: displacement_validation.html
+  rotation_validation: rotation_validation.html
+  signal_validation: signal_validation.html
+last_built: 2022-12-18T05:50Z
 
