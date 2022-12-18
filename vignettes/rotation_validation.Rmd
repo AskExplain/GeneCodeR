@@ -1,0 +1,140 @@
+---
+title: "Rotation validation"
+author: "help@askexplain.com"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+### GeneCodeR spatial rotation to test invariance
+
+Reload important files recently saved:
+
+```{r reload_important_files}
+
+main_path <- "~/Documents/main_files/AskExplain/Q4_2022/gcode/"
+
+# Please replace this path
+path_to_save <- paste(main_path,"./temp_save_dir/",sep="")
+
+load(file = paste(sep="",path_to_save,"all_genecoder.RData"))
+
+```
+
+Set up the test configuration for GeneCodeR
+
+```{r set_up_test_config_for_validation}
+
+# Set up genecoder transform information
+genecoder.config <- GeneCodeR::extract_config_framework(F)
+genecoder.config$transform$from <- 1
+genecoder.config$transform$to <- 2
+genecoder.config$extract_spots$window_size <- 30
+
+```
+
+
+Set up validation functions to evaluate statistically significant differences via a t-test, and, cosine similarity.
+
+```{r set_up_test_functions_for_validation}
+
+# Testing functions
+
+# cosine metric for similarity between observations
+
+test_sample_and_genes <- function(a,b,non_zero_markers,test_type="cosine"){
+
+  if (test_type == "t.test"){
+    
+    return(
+      list(
+        
+        sample_wise = do.call('c',parallel::mclapply(c(1:dim(a)[1]),function(X){
+          
+          t.test(as.numeric(a[X,non_zero_markers[X,]]),as.numeric(b[X,non_zero_markers[X,]]))$p.value
+          
+        },mc.cores = 8)),
+        
+        gene_wise = do.call('c',parallel::mclapply(c(1:dim(a)[2]),function(X){
+          
+          t.test(as.numeric(a[non_zero_markers[,X],X]),as.numeric(b[non_zero_markers[,X],X]))$p.value
+          
+        },mc.cores = 8))
+        
+      )
+    )
+  } 
+
+  if (test_type == "cosine"){
+    return(
+      list(
+        
+        sample_wise = do.call('c',parallel::mclapply(c(1:dim(a)[1]),function(X){
+          
+          lsa::cosine(as.numeric(a[X,non_zero_markers[X,]]),as.numeric(b[X,non_zero_markers[X,]]))
+          
+        },mc.cores = 8)),
+        
+        gene_wise = do.call('c',parallel::mclapply(c(1:dim(a)[2]),function(X){
+          
+          lsa::cosine(as.numeric(a[non_zero_markers[,X],X]),as.numeric(b[non_zero_markers[,X],X]))
+          
+        },mc.cores = 8))
+        
+      )
+    )
+  } 
+}
+
+```
+
+
+![Rotation validation](./rotation_validation.png)
+
+Rotation testing is used to evaluate how rotated images affect the differences between the rotated image transformed to gene expression and the observed gene expression. It is expected that regardless of rotation, the gene expression should not be different across rotated images transformed to gene expression, and thus have a high cosine similarity correlation (close to 1).
+
+```{r rotation_validation}
+
+# Spatial rotation testing
+
+
+rotate_spot2gex <- list()
+for (rotate_val in c(0,90,180,270)){
+  
+  genecoder.config$extract_spots$rotation <- rotate_val
+
+  rotate_test_spot_data <- GeneCodeR::prepare_spot(file_path_list = test_file_path_list,meta_info_list = meta_info_list,config = genecoder.config, gex_data = test_gex_data$gex)
+
+  rotate_spot2gex[[as.character(rotate_val)]] <- GeneCodeR::genecoder(model=genecoder.model, x = rotate_test_spot_data$spot, config = genecoder.config, model_type = "gcode")
+
+}
+
+count <- 0
+cosine.simil_scores <- c()
+for (i in c(1:4)){
+  for (j in c(1:4)){
+    if (i>j){
+      count <- count + 1
+      cosine.simil_scores[[count]] <- test_sample_and_genes(a = rotate_spot2gex[[i]],b = rotate_spot2gex[[j]], non_zero_markers = non_zero_markers, test_type = "t.test") 
+    }
+  }
+}
+rotate_spot2gex <- cosine.simil_scores
+
+
+```
+
+
+```{r plot_rotation}
+
+
+print(c("rotate cosine correlation; sample-wise",paste(c("0vs90:    ","0vs180:    ","0vs270:    ", "90vs180","90vs270","180vs270"),round(do.call('c',lapply(rotate_spot2gex,function(X){mean(X$sample_wise)})),5))))
+
+print(c("rotate cosine correlation; gene-wise",paste(c("0vs90:    ","0vs180:    ","0vs270:    ", "90vs180","90vs270","180vs270"),round(do.call('c',lapply(rotate_spot2gex,function(X){mean(X$gene_wise)})),5))))
+
+
+rm(list=ls())
+gc()
+```

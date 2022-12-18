@@ -42,6 +42,11 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/analysis_of_spatial_transcriptomics.html">Analysis of Spatial Transcriptomic data</a>
+    <a class="dropdown-item" href="../articles/base_validation.html">Base validation</a>
+    <a class="dropdown-item" href="../articles/displacement_validation.html">Displacement validation</a>
+    <a class="dropdown-item" href="../articles/rotation_validation.html">Rotation validation</a>
+    <a class="dropdown-item" href="../articles/signal_validation.html">Signal validation</a>
+    <a class="dropdown-item" href="../articles/similarity_validation.html">Similarity Validation</a>
   </div>
 </li>
       </ul>
@@ -60,11 +65,11 @@
 
 
 <div class="row">
-  <main id="main"><div class="page-header">
+  <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Analysis of Spatial Transcriptomic data</h1>
                         <h4 data-toc-skip class="author"><a href="mailto:help@askexplain.com" class="email">help@askexplain.com</a></h4>
             
-            <h4 data-toc-skip class="date">2022-03-14</h4>
+            <h4 data-toc-skip class="date">2022-12-17</h4>
       
       
       <div class="d-none name"><code>analysis_of_spatial_transcriptomics.Rmd</code></div>
@@ -90,56 +95,83 @@ the same space.</p>
 to load data from path, run gcode, extract relevant transformations, and
 validate the learned patterns.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Main libraries for analysis</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">GeneCodeR</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">gcode</span><span class="op">)</span>
-
-<span class="co"># Main libraries for plotting</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Main libraries for analysis</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">GeneCodeR</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">gcode</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Main libraries for plotting</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span></code></pre></div>
 <p>Please replace these paths</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Please replace these paths</span>
-<span class="va">path_to_save</span> <span class="op">&lt;-</span> <span class="st">"~/Documents/main_files/AskExplain/GeneCoder/temp_save_dir/"</span>
-<span class="va">path_to_work</span> <span class="op">&lt;-</span> <span class="st">"~/Documents/main_files/AskExplain/GeneCoder/temp_work_dir/"</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">main_path</span> <span class="op">&lt;-</span> <span class="st">"~/Documents/main_files/AskExplain/Q4_2022/gcode/"</span></span>
+<span></span>
+<span><span class="co"># Please replace these paths</span></span>
+<span><span class="va">path_to_save</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">main_path</span>,<span class="st">"./temp_save_dir/"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span></span>
+<span><span class="va">path_to_work</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">main_path</span>,<span class="st">"./temp_work_dir/"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span></span></code></pre></div>
 <p>Download data and format</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">path_to_save</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">path_to_work</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="va">path_to_work</span><span class="op">)</span>
-<span class="fu">curl</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/curl/man/curl_download.html" class="external-link">curl_download</a></span><span class="op">(</span>url <span class="op">=</span> <span class="st">"https://data.mendeley.com/api/datasets-v2/datasets/29ntw7sh4r/zip/download?version=5"</span>, destfile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">path_to_work</span>,<span class="st">"he_et_al.zip"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span><span class="op">)</span>
-<span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/unzip.html" class="external-link">unzip</a></span><span class="op">(</span>zipfile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">path_to_work</span>,<span class="st">"he_et_al.zip"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span>, exdir <span class="op">=</span> <span class="va">path_to_work</span><span class="op">)</span>
-<span class="va">path_to_work</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">path_to_work</span>,<span class="st">"29ntw7sh4r-5"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="va">path_to_work</span><span class="op">)</span>
-
-<span class="va">main_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>, full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
-<span class="va">new_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"BC"</span>, replacement <span class="op">=</span> <span class="st">"BT"</span>, x <span class="op">=</span> <span class="va">main_files</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.rename</a></span><span class="op">(</span>from <span class="op">=</span> <span class="va">main_files</span>, to <span class="op">=</span> <span class="va">new_files</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">path_to_save</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in dir.create(path_to_save): '/Users/dbanh_side/Documents/main_files/</span></span>
+<span><span class="co">## AskExplain/Q4_2022/gcode/./temp_save_dir' already exists</span></span></code></pre>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">path_to_work</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in dir.create(path_to_work): '/Users/dbanh_side/Documents/main_files/</span></span>
+<span><span class="co">## AskExplain/Q4_2022/gcode/./temp_work_dir' already exists</span></span></code></pre>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="va">path_to_work</span><span class="op">)</span></span>
+<span><span class="fu">curl</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/curl/man/curl_download.html" class="external-link">curl_download</a></span><span class="op">(</span>url <span class="op">=</span> <span class="st">"https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/29ntw7sh4r-5.zip"</span>, destfile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">path_to_work</span>,<span class="st">"he_et_al.zip"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/unzip.html" class="external-link">unzip</a></span><span class="op">(</span>zipfile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">path_to_work</span>,<span class="st">"he_et_al.zip"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span>, exdir <span class="op">=</span> <span class="va">path_to_work</span><span class="op">)</span></span>
+<span><span class="va">path_to_work</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">path_to_work</span>,<span class="st">"29ntw7sh4r-5"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="va">path_to_work</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">main_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>, full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">new_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"BC"</span>, replacement <span class="op">=</span> <span class="st">"BT"</span>, x <span class="op">=</span> <span class="va">main_files</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.rename</a></span><span class="op">(</span>from <span class="op">=</span> <span class="va">main_files</span>, to <span class="op">=</span> <span class="va">new_files</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##   [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">##  [16] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">##  [31] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">##  [46] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">##  [61] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">##  [76] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">##  [91] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [106] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [121] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [136] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [151] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [166] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [181] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [196] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [211] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [226] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [241] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [256] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [271] TRUE TRUE TRUE</span></span></code></pre>
 <p>GeneCodeR takes in three input files from a generic Spatial
 Transcriptomic dataset, per tissue slide:</p>
 <p>1 - coordinates 2 - gene expression 3 - images</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Input list of files</span>
-
-<span class="va">file_path_list</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_path_framework.html">extract_path_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span>
-
-<span class="va">file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>,pattern <span class="op">=</span> <span class="st">".csv.gz"</span>,full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
-<span class="va">file_path_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>,pattern <span class="op">=</span> <span class="st">"stdata.tsv.gz"</span>,full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
-<span class="va">file_path_list</span><span class="op">$</span><span class="va">pixel</span><span class="op">$</span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>,pattern <span class="op">=</span> <span class="st">".jpg"</span>,full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>
-<span class="va">train_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">*</span><span class="fl">0.6</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span>
-<span class="va">test_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="va">train_ids</span><span class="op">]</span>
-
-<span class="va">train_file_path_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">file_path_list</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path<span class="op">=</span><span class="va">X</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="va">train_ids</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span>
-<span class="va">test_file_path_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">file_path_list</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path<span class="op">=</span><span class="va">X</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="op">-</span><span class="va">train_ids</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Input list of files</span></span>
+<span></span>
+<span><span class="va">file_path_list</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_path_framework.html">extract_path_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">file_path_list</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>,pattern <span class="op">=</span> <span class="st">"*Coords.tsv.gz"</span>,full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>,pattern <span class="op">=</span> <span class="st">"*csv.gz"</span>,full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">file_path_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>,pattern <span class="op">=</span> <span class="st">"*stdata.tsv.gz"</span>,full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">file_path_list</span><span class="op">$</span><span class="va">pixel</span><span class="op">$</span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">path_to_work</span>,pattern <span class="op">=</span> <span class="st">"*jpg"</span>,full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">train_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">*</span><span class="fl">0.9</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">test_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="va">train_ids</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">train_file_path_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">file_path_list</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path<span class="op">=</span><span class="va">X</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="va">train_ids</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="va">test_file_path_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">file_path_list</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path<span class="op">=</span><span class="va">X</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="op">-</span><span class="va">train_ids</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p>The GeneCodeR configuration file takes in several parameters.</p>
 <p>The first set of parameters is information to extract spots - such as
 spot size, and any augmentations such as displacement of the
@@ -147,10 +179,10 @@ coordinates, or rotation of the image.</p>
 <p>The second set of parameters is for after the gcode model is learned
 (via GeneCodeR wrapper). This is to transfrom from one modality, to
 another modality (for example, from image to gene expression).</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Set up genecoder configuration parameters</span>
-
-<span class="va">genecoder.config</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_config_framework.html">extract_config_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Set up genecoder configuration parameters</span></span>
+<span></span>
+<span><span class="va">genecoder.config</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_config_framework.html">extract_config_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span></span></code></pre></div>
 <p>The meta information file takes in several parameters per coordinate,
 gene expression and image.</p>
 <p>The first set of parameters is to read in the file. Here, example
@@ -162,60 +194,261 @@ separator …).</p>
 the coordinate file - which columns contain the x-coordinates,
 y-coordinates and the label identifier for the spots? For example, the
 label identifiers, are given by the rownames indicated by a 0.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Set up meta information</span>
-
-<span class="va">meta_info_list</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_meta_framework.html">extract_meta_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">file_type</span> <span class="op">&lt;-</span> <span class="st">"csv"</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">file_type</span> <span class="op">&lt;-</span> <span class="st">"tsv"</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">pixel</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">file_type</span> <span class="op">&lt;-</span> <span class="st">"image"</span>
-
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">header</span> <span class="op">&lt;-</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">header</span> <span class="op">&lt;-</span> <span class="cn">T</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">sep</span> <span class="op">&lt;-</span> <span class="st">","</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">sep</span> <span class="op">&lt;-</span> <span class="st">"\t"</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">quote</span> <span class="op">&lt;-</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">quote</span> <span class="op">&lt;-</span> <span class="st">""</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">row.names</span> <span class="op">&lt;-</span> <span class="fl">1</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">row.names</span> <span class="op">&lt;-</span> <span class="fl">1</span>
-
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor_id</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fl">0</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor_id</span><span class="op">$</span><span class="va">coord_x</span> <span class="op">&lt;-</span> <span class="fl">1</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor_id</span><span class="op">$</span><span class="va">coord_y</span> <span class="op">&lt;-</span> <span class="fl">2</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Set up meta information</span></span>
+<span></span>
+<span><span class="va">meta_info_list</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_meta_framework.html">extract_meta_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">file_type</span> <span class="op">&lt;-</span> <span class="st">"tsv"</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">file_type</span> <span class="op">&lt;-</span> <span class="st">"csv"</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">file_type</span> <span class="op">&lt;-</span> <span class="st">"tsv"</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">pixel</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">file_type</span> <span class="op">&lt;-</span> <span class="st">"image"</span></span>
+<span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">sep</span> <span class="op">&lt;-</span> <span class="st">"\t"</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">header</span> <span class="op">&lt;-</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">header</span> <span class="op">&lt;-</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">header</span> <span class="op">&lt;-</span> <span class="cn">T</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">sep</span> <span class="op">&lt;-</span> <span class="st">","</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">sep</span> <span class="op">&lt;-</span> <span class="st">"\t"</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">row.names</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">quote</span> <span class="op">&lt;-</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">quote</span> <span class="op">&lt;-</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">quote</span> <span class="op">&lt;-</span> <span class="st">""</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">row.names</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">row.names</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor_id</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor_id</span><span class="op">$</span><span class="va">coord_x</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor_id</span><span class="op">$</span><span class="va">coord_y</span> <span class="op">&lt;-</span> <span class="fl">2</span></span></code></pre></div>
 <p>To run the analysis appropriately, a set of common genes are required
 for all spots.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">common_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">file_path_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu">read_file</span><span class="op">(</span>path <span class="op">=</span> <span class="va">file_path_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="va">X</span><span class="op">]</span>, meta_info <span class="op">=</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span>
-
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">common_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Reduce</a></span><span class="op">(</span><span class="st">"intersect"</span>,<span class="va">common_genes</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">common_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">file_path_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu">read_file</span><span class="op">(</span>path <span class="op">=</span> <span class="va">file_path_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="va">X</span><span class="op">]</span>, meta_info <span class="op">=</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">read_file</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 1</span></span>
+<span><span class="co">## [1] 2</span></span>
+<span><span class="co">## [1] 3</span></span>
+<span><span class="co">## [1] 4</span></span>
+<span><span class="co">## [1] 5</span></span>
+<span><span class="co">## [1] 6</span></span>
+<span><span class="co">## [1] 7</span></span>
+<span><span class="co">## [1] 8</span></span>
+<span><span class="co">## [1] 9</span></span>
+<span><span class="co">## [1] 10</span></span>
+<span><span class="co">## [1] 11</span></span>
+<span><span class="co">## [1] 12</span></span>
+<span><span class="co">## [1] 13</span></span>
+<span><span class="co">## [1] 14</span></span>
+<span><span class="co">## [1] 15</span></span>
+<span><span class="co">## [1] 16</span></span>
+<span><span class="co">## [1] 17</span></span>
+<span><span class="co">## [1] 18</span></span>
+<span><span class="co">## [1] 19</span></span>
+<span><span class="co">## [1] 20</span></span>
+<span><span class="co">## [1] 21</span></span>
+<span><span class="co">## [1] 22</span></span>
+<span><span class="co">## [1] 23</span></span>
+<span><span class="co">## [1] 24</span></span>
+<span><span class="co">## [1] 25</span></span>
+<span><span class="co">## [1] 26</span></span>
+<span><span class="co">## [1] 27</span></span>
+<span><span class="co">## [1] 28</span></span>
+<span><span class="co">## [1] 29</span></span>
+<span><span class="co">## [1] 30</span></span>
+<span><span class="co">## [1] 31</span></span>
+<span><span class="co">## [1] 32</span></span>
+<span><span class="co">## [1] 33</span></span>
+<span><span class="co">## [1] 34</span></span>
+<span><span class="co">## [1] 35</span></span>
+<span><span class="co">## [1] 36</span></span>
+<span><span class="co">## [1] 37</span></span>
+<span><span class="co">## [1] 38</span></span>
+<span><span class="co">## [1] 39</span></span>
+<span><span class="co">## [1] 40</span></span>
+<span><span class="co">## [1] 41</span></span>
+<span><span class="co">## [1] 42</span></span>
+<span><span class="co">## [1] 43</span></span>
+<span><span class="co">## [1] 44</span></span>
+<span><span class="co">## [1] 45</span></span>
+<span><span class="co">## [1] 46</span></span>
+<span><span class="co">## [1] 47</span></span>
+<span><span class="co">## [1] 48</span></span>
+<span><span class="co">## [1] 49</span></span>
+<span><span class="co">## [1] 50</span></span>
+<span><span class="co">## [1] 51</span></span>
+<span><span class="co">## [1] 52</span></span>
+<span><span class="co">## [1] 53</span></span>
+<span><span class="co">## [1] 54</span></span>
+<span><span class="co">## [1] 55</span></span>
+<span><span class="co">## [1] 56</span></span>
+<span><span class="co">## [1] 57</span></span>
+<span><span class="co">## [1] 58</span></span>
+<span><span class="co">## [1] 59</span></span>
+<span><span class="co">## [1] 60</span></span>
+<span><span class="co">## [1] 61</span></span>
+<span><span class="co">## [1] 62</span></span>
+<span><span class="co">## [1] 63</span></span>
+<span><span class="co">## [1] 64</span></span>
+<span><span class="co">## [1] 65</span></span>
+<span><span class="co">## [1] 66</span></span>
+<span><span class="co">## [1] 67</span></span>
+<span><span class="co">## [1] 68</span></span></code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">common_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Reduce</a></span><span class="op">(</span><span class="st">"intersect"</span>,<span class="va">common_genes</span><span class="op">)</span></span></code></pre></div>
 <p>Coordinate labels also need to be extracted.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">train_file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/row.names.html" class="external-link">row.names</a></span><span class="op">(</span><span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu">read_file</span><span class="op">(</span>path <span class="op">=</span> <span class="va">train_file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="va">X</span><span class="op">]</span>, meta_info <span class="op">=</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">train_file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/row.names.html" class="external-link">row.names</a></span><span class="op">(</span><span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu">read_file</span><span class="op">(</span>path <span class="op">=</span> <span class="va">train_file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="va">X</span><span class="op">]</span>, meta_info <span class="op">=</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p>Gene expression data is extracted using the path list, meta
 information, and configuration parameters.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Extract gex data</span>
-<span class="va">gex_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_gex.html">prepare_gex</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">train_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Extract gex data</span></span>
+<span><span class="va">gex_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_gex.html">prepare_gex</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">train_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "Extracting gex"</span></span>
+<span><span class="co">## [1] "Preparing gex      1"</span></span>
+<span><span class="co">## [1] "Preparing gex      2"</span></span>
+<span><span class="co">## [1] "Preparing gex      3"</span></span>
+<span><span class="co">## [1] "Preparing gex      4"</span></span>
+<span><span class="co">## [1] "Preparing gex      5"</span></span>
+<span><span class="co">## [1] "Preparing gex      6"</span></span>
+<span><span class="co">## [1] "Preparing gex      7"</span></span>
+<span><span class="co">## [1] "Preparing gex      8"</span></span>
+<span><span class="co">## [1] "Preparing gex      9"</span></span>
+<span><span class="co">## [1] "Preparing gex      10"</span></span>
+<span><span class="co">## [1] "Preparing gex      11"</span></span>
+<span><span class="co">## [1] "Preparing gex      12"</span></span>
+<span><span class="co">## [1] "Preparing gex      13"</span></span>
+<span><span class="co">## [1] "Preparing gex      14"</span></span>
+<span><span class="co">## [1] "Preparing gex      15"</span></span>
+<span><span class="co">## [1] "Preparing gex      16"</span></span>
+<span><span class="co">## [1] "Preparing gex      17"</span></span>
+<span><span class="co">## [1] "Preparing gex      18"</span></span>
+<span><span class="co">## [1] "Preparing gex      19"</span></span>
+<span><span class="co">## [1] "Preparing gex      20"</span></span>
+<span><span class="co">## [1] "Preparing gex      21"</span></span>
+<span><span class="co">## [1] "Preparing gex      22"</span></span>
+<span><span class="co">## [1] "Preparing gex      23"</span></span>
+<span><span class="co">## [1] "Preparing gex      24"</span></span>
+<span><span class="co">## [1] "Preparing gex      25"</span></span>
+<span><span class="co">## [1] "Preparing gex      26"</span></span>
+<span><span class="co">## [1] "Preparing gex      27"</span></span>
+<span><span class="co">## [1] "Preparing gex      28"</span></span>
+<span><span class="co">## [1] "Preparing gex      29"</span></span>
+<span><span class="co">## [1] "Preparing gex      30"</span></span>
+<span><span class="co">## [1] "Preparing gex      31"</span></span>
+<span><span class="co">## [1] "Preparing gex      32"</span></span>
+<span><span class="co">## [1] "Preparing gex      33"</span></span>
+<span><span class="co">## [1] "Preparing gex      34"</span></span>
+<span><span class="co">## [1] "Preparing gex      35"</span></span>
+<span><span class="co">## [1] "Preparing gex      36"</span></span>
+<span><span class="co">## [1] "Preparing gex      37"</span></span>
+<span><span class="co">## [1] "Preparing gex      38"</span></span>
+<span><span class="co">## [1] "Preparing gex      39"</span></span>
+<span><span class="co">## [1] "Preparing gex      40"</span></span>
+<span><span class="co">## [1] "Preparing gex      41"</span></span>
+<span><span class="co">## [1] "Preparing gex      42"</span></span>
+<span><span class="co">## [1] "Preparing gex      43"</span></span>
+<span><span class="co">## [1] "Preparing gex      44"</span></span>
+<span><span class="co">## [1] "Preparing gex      45"</span></span>
+<span><span class="co">## [1] "Preparing gex      46"</span></span>
+<span><span class="co">## [1] "Preparing gex      47"</span></span>
+<span><span class="co">## [1] "Preparing gex      48"</span></span>
+<span><span class="co">## [1] "Preparing gex      49"</span></span>
+<span><span class="co">## [1] "Preparing gex      50"</span></span>
+<span><span class="co">## [1] "Preparing gex      51"</span></span>
+<span><span class="co">## [1] "Preparing gex      52"</span></span>
+<span><span class="co">## [1] "Preparing gex      53"</span></span>
+<span><span class="co">## [1] "Preparing gex      54"</span></span>
+<span><span class="co">## [1] "Preparing gex      55"</span></span>
+<span><span class="co">## [1] "Preparing gex      56"</span></span>
+<span><span class="co">## [1] "Preparing gex      57"</span></span>
+<span><span class="co">## [1] "Preparing gex      58"</span></span>
+<span><span class="co">## [1] "Preparing gex      59"</span></span>
+<span><span class="co">## [1] "Preparing gex      60"</span></span>
+<span><span class="co">## [1] "Preparing gex      61"</span></span>
+<span><span class="co">## [1] "Done preparation!"</span></span></code></pre>
 <p>Importantly, labels for the meta information from the gene expression
 data extraction is required for extracting relevant spots that contain
 gene expression greater than background.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Store meta data</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="va">gex_data</span><span class="op">$</span><span class="va">labels</span>
-
-<span class="co"># Extract spot data</span>
-<span class="va">spot_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_spot.html">prepare_spot</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">train_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Store meta data</span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="va">gex_data</span><span class="op">$</span><span class="va">labels</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Extract spot data</span></span>
+<span></span>
+<span><span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">window_size</span> <span class="op">&lt;-</span> <span class="fl">30</span></span>
+<span></span>
+<span><span class="va">spot_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_spot.html">prepare_spot</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">train_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span>, gex_data <span class="op">=</span> <span class="va">gex_data</span><span class="op">$</span><span class="va">gex</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "Extracting spots"</span></span>
+<span><span class="co">## [1] "Preparing spot      1"</span></span>
+<span><span class="co">## [1] "Preparing spot      2"</span></span>
+<span><span class="co">## [1] "Preparing spot      3"</span></span>
+<span><span class="co">## [1] "Preparing spot      4"</span></span>
+<span><span class="co">## [1] "Preparing spot      5"</span></span>
+<span><span class="co">## [1] "Preparing spot      6"</span></span>
+<span><span class="co">## [1] "Preparing spot      7"</span></span>
+<span><span class="co">## [1] "Preparing spot      8"</span></span>
+<span><span class="co">## [1] "Preparing spot      9"</span></span>
+<span><span class="co">## [1] "Preparing spot      10"</span></span>
+<span><span class="co">## [1] "Preparing spot      11"</span></span>
+<span><span class="co">## [1] "Preparing spot      12"</span></span>
+<span><span class="co">## [1] "Preparing spot      13"</span></span>
+<span><span class="co">## [1] "Preparing spot      14"</span></span>
+<span><span class="co">## [1] "Preparing spot      15"</span></span>
+<span><span class="co">## [1] "Preparing spot      16"</span></span>
+<span><span class="co">## [1] "Preparing spot      17"</span></span>
+<span><span class="co">## [1] "Preparing spot      18"</span></span>
+<span><span class="co">## [1] "Preparing spot      19"</span></span>
+<span><span class="co">## [1] "Preparing spot      20"</span></span>
+<span><span class="co">## [1] "Preparing spot      21"</span></span>
+<span><span class="co">## [1] "Preparing spot      22"</span></span>
+<span><span class="co">## [1] "Preparing spot      23"</span></span>
+<span><span class="co">## [1] "Preparing spot      24"</span></span>
+<span><span class="co">## [1] "Preparing spot      25"</span></span>
+<span><span class="co">## [1] "Preparing spot      26"</span></span>
+<span><span class="co">## [1] "Preparing spot      27"</span></span>
+<span><span class="co">## [1] "Preparing spot      28"</span></span>
+<span><span class="co">## [1] "Preparing spot      29"</span></span>
+<span><span class="co">## [1] "Preparing spot      30"</span></span>
+<span><span class="co">## [1] "Preparing spot      31"</span></span>
+<span><span class="co">## [1] "Preparing spot      32"</span></span>
+<span><span class="co">## [1] "Preparing spot      33"</span></span>
+<span><span class="co">## [1] "Preparing spot      34"</span></span>
+<span><span class="co">## [1] "Preparing spot      35"</span></span>
+<span><span class="co">## [1] "Preparing spot      36"</span></span>
+<span><span class="co">## [1] "Preparing spot      37"</span></span>
+<span><span class="co">## [1] "Preparing spot      38"</span></span>
+<span><span class="co">## [1] "Preparing spot      39"</span></span>
+<span><span class="co">## [1] "Preparing spot      40"</span></span>
+<span><span class="co">## [1] "Preparing spot      41"</span></span>
+<span><span class="co">## [1] "Preparing spot      42"</span></span>
+<span><span class="co">## [1] "Preparing spot      43"</span></span>
+<span><span class="co">## [1] "Preparing spot      44"</span></span>
+<span><span class="co">## [1] "Preparing spot      45"</span></span>
+<span><span class="co">## [1] "Preparing spot      46"</span></span>
+<span><span class="co">## [1] "Preparing spot      47"</span></span>
+<span><span class="co">## [1] "Preparing spot      48"</span></span>
+<span><span class="co">## [1] "Preparing spot      49"</span></span>
+<span><span class="co">## [1] "Preparing spot      50"</span></span>
+<span><span class="co">## [1] "Preparing spot      51"</span></span>
+<span><span class="co">## [1] "Preparing spot      52"</span></span>
+<span><span class="co">## [1] "Preparing spot      53"</span></span>
+<span><span class="co">## [1] "Preparing spot      54"</span></span>
+<span><span class="co">## [1] "Preparing spot      55"</span></span>
+<span><span class="co">## [1] "Preparing spot      56"</span></span>
+<span><span class="co">## [1] "Preparing spot      57"</span></span>
+<span><span class="co">## [1] "Preparing spot      58"</span></span>
+<span><span class="co">## [1] "Preparing spot      59"</span></span>
+<span><span class="co">## [1] "Preparing spot      60"</span></span>
+<span><span class="co">## [1] "Preparing spot      61"</span></span>
+<span><span class="co">## [1] "Done preparation!"</span></span></code></pre>
 <p>Relevant frameworks are set up to begin learning the Generative
 Encoder model.</p>
 <p>Firstly, set up the data list, which stores the gene expression and
 spot data.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Set up data</span>
-
-<span class="va">data_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>gex<span class="op">=</span><span class="va">gex_data</span><span class="op">$</span><span class="va">gex</span>,spot<span class="op">=</span><span class="va">spot_data</span><span class="op">$</span><span class="va">spot</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Set up data</span></span>
+<span></span>
+<span><span class="va">data_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">spot_data</span><span class="op">$</span><span class="va">spot</span>,<span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">spot_data</span><span class="op">$</span><span class="va">gex</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The join framework is set up, creating the model structure that
 learns (1): a similar function for “all” datasets, or (2): separate
 functions across gene expression and image pixel spots.</p>
@@ -229,383 +462,105 @@ space via the alpha and beta codes. For example, the use of image
 patterns is analogous to pattern matching to the example image spot, the
 latent codes un-rotate any example image spots until it best fits the
 image pattern.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Set up join information</span>
-
-<span class="va">join</span> <span class="op">&lt;-</span> <span class="fu">gcode</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gcode/man/extract_join_framework.html" class="external-link">extract_join_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span>
-<span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">data_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gex"</span>,<span class="st">"spot"</span><span class="op">)</span>
-<span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"all"</span>,<span class="st">"all"</span><span class="op">)</span>
-<span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">code</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"all"</span>,<span class="st">"all"</span><span class="op">)</span>
-<span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">alpha.code</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"all"</span>,<span class="st">"all"</span><span class="op">)</span>
-<span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">beta.code</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"all"</span>,<span class="st">"all"</span><span class="op">)</span>
-<span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">incode</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gex"</span>,<span class="st">"spot"</span><span class="op">)</span>
-<span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"gex"</span>,<span class="st">"spot"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Set up join information</span></span>
+<span></span>
+<span><span class="va">join</span> <span class="op">&lt;-</span> <span class="fu">gcode</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gcode/man/extract_join_framework.html" class="external-link">extract_join_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span></span>
+<span><span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">data_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">alpha_sample</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">beta_sample</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">alpha_signal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">beta_signal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">join</span><span class="op">$</span><span class="va">complete</span><span class="op">$</span><span class="va">code</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">join</span><span class="op">$</span><span class="va">covariance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu">gcode</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gcode/man/extract_references_framework.html" class="external-link">extract_references_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span></span>
+<span><span class="va">reference</span><span class="op">$</span><span class="va">data_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p>Set up configuration information - the dimensions of the encoding
 space for the samples (i_dim), and the features (j_dim), as well as the
 dimensions of the latent code (k_dim) are set up. The initialisation for
 these parameters are set up via the irlba library using partial Singular
 Value Decomposition.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Set up gcode config</span>
-
-<span class="va">gcode.config</span> <span class="op">&lt;-</span> <span class="fu">gcode</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gcode/man/extract_config.html" class="external-link">extract_config</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span>
-<span class="va">gcode.config</span><span class="op">$</span><span class="va">init</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"irlba"</span>,<span class="st">"irlba"</span><span class="op">)</span>
-<span class="va">gcode.config</span><span class="op">$</span><span class="va">k_dim</span> <span class="op">&lt;-</span> <span class="fl">50</span>
-<span class="va">gcode.config</span><span class="op">$</span><span class="va">i_dim</span> <span class="op">&lt;-</span> <span class="fl">100</span>
-<span class="va">gcode.config</span><span class="op">$</span><span class="va">j_dim</span> <span class="op">&lt;-</span> <span class="fl">100</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Set up gcode config</span></span>
+<span><span class="va">gcode.config</span> <span class="op">&lt;-</span> <span class="fu">gcode</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gcode/man/extract_config.html" class="external-link">extract_config</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">init</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>alpha_sample<span class="op">=</span><span class="st">"irlba"</span>,beta_sample<span class="op">=</span><span class="st">"irlba"</span><span class="op">)</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">i_dim</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">j_dim</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">dimension_reduction</span> <span class="op">&lt;-</span> <span class="cn">F</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">max_iter</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">tol</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">n.cores</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">learn_rate</span> <span class="op">&lt;-</span> <span class="fl">1e-1</span></span>
+<span><span class="va">gcode.config</span><span class="op">$</span><span class="va">batch_size</span> <span class="op">&lt;-</span> <span class="fl">500</span></span></code></pre></div>
 <p>Run the Generative Encoder model</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Set up gcode model</span>
-
-<span class="va">genecoder.model</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/learn_model.html">learn_model</a></span><span class="op">(</span>data_list <span class="op">=</span> <span class="va">data_list</span>, config <span class="op">=</span> <span class="va">gcode.config</span>, join <span class="op">=</span> <span class="va">join</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Set up gcode model</span></span>
+<span></span>
+<span><span class="va">genecoder.model</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/learn_model.html">learn_model</a></span><span class="op">(</span>data_list <span class="op">=</span> <span class="va">data_list</span>, config <span class="op">=</span> <span class="va">gcode.config</span>, join <span class="op">=</span> <span class="va">join</span>, reference <span class="op">=</span> <span class="va">reference</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "Initialising alpha_sample with : irlba"</span></span>
+<span><span class="co">## [2] "Initialising beta_sample with : irlba"</span></span></code></pre>
+<pre><code><span><span class="co">## Warning in irlba::irlba(as.matrix(x), nu = config$i_dim, maxit = 1): did not</span></span>
+<span><span class="co">## converge--results might be invalid!; try increasing work or maxit</span></span></code></pre>
+<pre><code><span><span class="co">## Warning in irlba::irlba(as.matrix(x), nv = config$j_dim, maxit = 1): did not</span></span>
+<span><span class="co">## converge--results might be invalid!; try increasing work or maxit</span></span>
+<span></span>
+<span><span class="co">## Warning in irlba::irlba(as.matrix(x), nv = config$j_dim, maxit = 1): did not</span></span>
+<span><span class="co">## converge--results might be invalid!; try increasing work or maxit</span></span></code></pre>
+<pre><code><span><span class="co">## [1] "Beginning gcode learning with:    Sample dimension reduction (config$i_dim): 500    Feature dimension reduction (config$j_dim): 500    Latent invariant dimension (config$k_dim):     Tolerance Threshold: 1   Maximum number of iterations: 100   Verbose: TRUE"</span></span>
+<span><span class="co">## [1] "Iteration: 1 with Tolerance of: 21.1634805067891"</span></span>
+<span><span class="co">## [1] "Iteration: 2 with Tolerance of: 63.4720802714958"</span></span>
+<span><span class="co">## [1] "Iteration: 3 with Tolerance of: 8.75341078830188"</span></span>
+<span><span class="co">## [1] "Iteration: 4 with Tolerance of: 82.3722229279707"</span></span>
+<span><span class="co">## [1] "Iteration: 5 with Tolerance of: 0.272863785887901"</span></span>
+<span><span class="co">## [1] "Learning has converged for gcode, beginning (if requested) dimension reduction"</span></span>
+<span><span class="co">## [1] "Done! Total runtime of   42.5877848505974"</span></span></code></pre>
 <p>Now begins the testing validation phase…</p>
 <p>First extract the test set of the coordinate factor labels.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Evaluate on test set</span>
-
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">test_file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/row.names.html" class="external-link">row.names</a></span><span class="op">(</span><span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu">read_file</span><span class="op">(</span>path <span class="op">=</span> <span class="va">test_file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="va">X</span><span class="op">]</span>, meta_info <span class="op">=</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span></code></pre></div>
-<p>Next extract the test set of the gene expression data.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Extract test gex data</span>
-<span class="va">test_gex_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_gex.html">prepare_gex</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">test_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-<span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="va">test_gex_data</span><span class="op">$</span><span class="va">labels</span></code></pre></div>
-<p>Save relevant information, including the model, the test meta
-information, the test file list and the test gene expression data.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">genecoder.model</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"genecoder.RData"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">test_gex_data</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"test_gex.RData"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">meta_info_list</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"meta_info_list.RData"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">test_file_path_list</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"test_file_path_list.RData"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p>Remove all files to clean up space for validation</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span>list<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>;<span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">##           used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)</span>
-<span class="co">## Ncells  884144 47.3    1508517 80.6         NA  1508517 80.6</span>
-<span class="co">## Vcells 1558217 11.9    8388608 64.0      16384  3467134 26.5</span></code></pre>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Restore paths</span>
-<span class="va">path_to_save</span> <span class="op">&lt;-</span> <span class="st">"~/Documents/main_files/AskExplain/GeneCoder/temp_save_dir/"</span>
-<span class="va">path_to_work</span> <span class="op">&lt;-</span> <span class="st">"~/Documents/main_files/AskExplain/GeneCoder/temp_work_dir/"</span></code></pre></div>
-<p>Reload important files recently saved:</p>
-<p>1 - model learned 2 - test gene expression data 3 - test meta
-information 4 - test file path information</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"genecoder.RData"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"test_gex.RData"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"meta_info_list.RData"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"test_file_path_list.RData"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p>Set up the test configuration for GeneCodeR</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Set up genecoder transform information</span>
-<span class="va">genecoder.config</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/extract_config_framework.html">extract_config_framework</a></span><span class="op">(</span><span class="cn">F</span><span class="op">)</span>
-<span class="va">genecoder.config</span><span class="op">$</span><span class="va">transform</span><span class="op">$</span><span class="va">from</span> <span class="op">&lt;-</span> <span class="st">"spot"</span>
-<span class="va">genecoder.config</span><span class="op">$</span><span class="va">transform</span><span class="op">$</span><span class="va">to</span> <span class="op">&lt;-</span> <span class="st">"gex"</span></code></pre></div>
-<p>Set up validation functions to evaluate statistically significant
-differences via a t-test, and, cosine similarity.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Testing functions</span>
-
-<span class="co"># t.test for difference between observations</span>
-
-<span class="va">t.test_difference_obs</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">true_obs</span>,<span class="va">a</span>,<span class="va">b</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu"><a href="https://rdrr.io/r/stats/t.test.html" class="external-link">t.test</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">a</span> <span class="op">-</span> <span class="va">true_obs</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">b</span> <span class="op">-</span> <span class="va">true_obs</span><span class="op">)</span><span class="op">)</span>
-<span class="op">}</span>
-
-<span class="co"># cosine metric for similarity between observations</span>
-
-<span class="va">cosine.simil_sample_and_genes</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span>,<span class="va">b</span><span class="op">)</span><span class="op">{</span>
-  
-<span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>
-    
-    sample_wise <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'c'</span>,<span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">a</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-      
-      <span class="fu">lsa</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/lsa/man/cosine.html" class="external-link">cosine</a></span><span class="op">(</span><span class="va">a</span><span class="op">[</span><span class="va">X</span>,<span class="op">]</span>,<span class="va">b</span><span class="op">[</span><span class="va">X</span>,<span class="op">]</span><span class="op">)</span>
-      
-    <span class="op">}</span>,mc.cores <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span>,
-    
-    gene_wise <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'c'</span>,<span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">a</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-      
-      <span class="fu">lsa</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/lsa/man/cosine.html" class="external-link">cosine</a></span><span class="op">(</span><span class="va">a</span><span class="op">[</span>,<span class="va">X</span><span class="op">]</span>,<span class="va">b</span><span class="op">[</span>,<span class="va">X</span><span class="op">]</span><span class="op">)</span>
-      
-    <span class="op">}</span>,mc.cores <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span>
-    
-  <span class="op">)</span>
-<span class="op">)</span>
-  
-<span class="op">}</span></code></pre></div>
-<div class="figure">
-<img src="base_validation.png" alt=""><p class="caption">Base validation</p>
-</div>
-<p>Base validation is used to directly compare observed gene expression
-with transformed image spots representing gene expression via pattern
-matching and weight assignment. Cosine similarity is used to compare the
-observed and the transformed.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Base testing</span>
-
-<span class="co"># Extract test spot data</span>
-
-<span class="va">base_test_spot_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_spot.html">prepare_spot</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">test_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-
-<span class="va">base_spot2gex</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/genecoder.html">genecoder</a></span><span class="op">(</span>model<span class="op">=</span><span class="va">genecoder.model</span>, x <span class="op">=</span> <span class="va">base_test_spot_data</span><span class="op">$</span><span class="va">spot</span>, config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-
-<span class="va">base_spot2gex</span> <span class="op">&lt;-</span> <span class="fu">cosine.simil_sample_and_genes</span><span class="op">(</span>a <span class="op">=</span> <span class="va">test_gex_data</span><span class="op">$</span><span class="va">gex</span>, <span class="va">base_spot2gex</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">base_spot2gex</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"base_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"base_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">title_name</span> <span class="op">=</span> <span class="st">"base_cosine_similarity"</span>
-<span class="va">tissue_name</span> <span class="op">=</span> <span class="st">"breast"</span>
-
-<span class="va">sample_similarity</span> <span class="op">=</span> <span class="va">base_spot2gex</span><span class="op">$</span><span class="va">sample_wise</span>
-<span class="va">feature_similarity</span> <span class="op">=</span> <span class="va">base_spot2gex</span><span class="op">$</span><span class="va">gene_wise</span>
-
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
-
-<span class="va">lm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,
-            <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,
-            <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">g1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Measure<span class="op">=</span><span class="va">sample_similarity</span>,Metric<span class="op">=</span><span class="st">"Predicted vs Observed \n Sample-wise Pearson Correlation"</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">Metric</span>,y<span class="op">=</span><span class="va">Measure</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> 
-
-<span class="va">g2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Measure<span class="op">=</span><span class="va">feature_similarity</span>,Metric<span class="op">=</span><span class="st">"Predicted vs Observed \n Gene-wise Pearson Correlation"</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">Metric</span>,y<span class="op">=</span><span class="va">Measure</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> 
-
-<span class="va">gg_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">g1</span>,<span class="va">g2</span><span class="op">)</span>
-
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span>
-<span class="va">final_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html" class="external-link">arrangeGrob</a></span><span class="op">(</span>
-  grobs <span class="op">=</span> <span class="va">gg_plots</span>,
-  layout_matrix <span class="op">=</span> <span class="va">lm</span>
-<span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">final_plots</span><span class="op">)</span></code></pre></div>
-<p><img src="analysis_of_spatial_transcriptomics_files/figure-html/plot_base-1.png" width="700"></p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="va">final_plots</span>,filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">path_to_save</span>,<span class="st">"/jpeg_accuracy_gcode_"</span>,<span class="va">tissue_name</span>,<span class="st">"_SPATIAL/"</span>,<span class="va">title_name</span>,<span class="st">"_accuracy_"</span>,<span class="va">tissue_name</span>,<span class="st">"_spatial.png"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span>,width <span class="op">=</span> <span class="fl">5</span>,height<span class="op">=</span><span class="fl">5</span><span class="op">)</span></code></pre></div>
-<div class="figure">
-<img src="rotation_validation.png" alt=""><p class="caption">Rotation validation</p>
-</div>
-<p>Rotation testing is used to evaluate how rotated images affect the
-differences between the rotated image transformed to gene expression and
-the observed gene expression. It is expected that regardless of
-rotation, the gene expression should not be statistically significantly
-different across rotated images transformed to gene expression.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Spatial rotation testing</span>
-
-<span class="va">rotate_spot2gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>
-<span class="kw">for</span> <span class="op">(</span><span class="va">rotate_val</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">90</span>,<span class="fl">180</span>,<span class="fl">270</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
-  <span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">rotation</span> <span class="op">&lt;-</span> <span class="va">rotate_val</span>
-
-  <span class="va">rotate_test_spot_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_spot.html">prepare_spot</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">test_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-
-  <span class="va">rotate_spot2gex</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">rotate_val</span><span class="op">)</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/genecoder.html">genecoder</a></span><span class="op">(</span>model<span class="op">=</span><span class="va">genecoder.model</span>, x <span class="op">=</span> <span class="va">rotate_test_spot_data</span><span class="op">$</span><span class="va">spot</span>, config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-<span class="op">}</span>
-
-
-<span class="va">rotate_spot2gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu">t.test_difference_obs</span><span class="op">(</span>true_obs <span class="op">=</span> <span class="va">test_gex_data</span><span class="op">$</span><span class="va">gex</span>, a <span class="op">=</span> <span class="va">rotate_spot2gex</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, b <span class="op">=</span> <span class="va">rotate_spot2gex</span><span class="op">[[</span><span class="va">X</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">rotate_spot2gex</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"rotate_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"rotate_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rotate p-value"</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0vs90:    "</span>,<span class="st">"0vs180:    "</span>,<span class="st">"0vs270:    "</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'c'</span>,<span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">rotate_spot2gex</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span><span class="va">X</span><span class="op">$</span><span class="va">p.value</span><span class="op">}</span><span class="op">)</span><span class="op">)</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "rotate p-value"      "0vs90:     0.76472"  "0vs180:     0.96699"</span>
-<span class="co">## [4] "0vs270:     0.81952"</span></code></pre>
-<div class="figure">
-<img src="displace_validation.png" alt=""><p class="caption">Displacement validation</p>
-</div>
-<p>Displacement testing is used to evaluate how gene levels change when
-the image spot is displaced from where gene expression is experimentally
-measured. It is expected that as the displacement increases, the gene
-expression difference should become more statistically significantly
-different.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Spatial displacement testing</span>
-
-<span class="va">displace_spot2gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>
-<span class="kw">for</span> <span class="op">(</span><span class="va">displace_val</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span>,<span class="fl">4</span>,<span class="fl">8</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
-  <span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">rotation</span> <span class="op">&lt;-</span> <span class="fl">0</span>
-  <span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">displacement_x</span> <span class="op">&lt;-</span> <span class="va">displace_val</span>
-  <span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">displacement_y</span> <span class="op">&lt;-</span> <span class="va">displace_val</span>
-
-  <span class="va">displace_test_spot_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_spot.html">prepare_spot</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">test_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-
-  <span class="va">displace_spot2gex</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">displace_val</span><span class="op">)</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/genecoder.html">genecoder</a></span><span class="op">(</span>model<span class="op">=</span><span class="va">genecoder.model</span>, x <span class="op">=</span> <span class="va">displace_test_spot_data</span><span class="op">$</span><span class="va">spot</span>, config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-<span class="op">}</span>
-
-<span class="va">displace_spot2gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu">t.test_difference_obs</span><span class="op">(</span>true_obs <span class="op">=</span> <span class="va">test_gex_data</span><span class="op">$</span><span class="va">gex</span>, a <span class="op">=</span> <span class="va">displace_spot2gex</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, b <span class="op">=</span> <span class="va">displace_spot2gex</span><span class="op">[[</span><span class="va">X</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">displace_spot2gex</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"displace_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Evaluate on test set</span></span>
+<span></span>
+<span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">test_file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">)</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/row.names.html" class="external-link">row.names</a></span><span class="op">(</span><span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu">read_file</span><span class="op">(</span>path <span class="op">=</span> <span class="va">test_file_path_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">path</span><span class="op">[</span><span class="va">X</span><span class="op">]</span>, meta_info <span class="op">=</span> <span class="va">meta_info_list</span><span class="op">$</span><span class="va">coord</span><span class="op">$</span><span class="va">read_file</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<p>Next extract the test set of the gene expression data.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Extract test gex data</span></span>
+<span><span class="va">test_gex_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_gex.html">prepare_gex</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">test_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "Extracting gex"</span></span>
+<span><span class="co">## [1] "Preparing gex      1"</span></span>
+<span><span class="co">## [1] "Preparing gex      2"</span></span>
+<span><span class="co">## [1] "Preparing gex      3"</span></span>
+<span><span class="co">## [1] "Preparing gex      4"</span></span>
+<span><span class="co">## [1] "Preparing gex      5"</span></span>
+<span><span class="co">## [1] "Preparing gex      6"</span></span>
+<span><span class="co">## [1] "Preparing gex      7"</span></span>
+<span><span class="co">## [1] "Done preparation!"</span></span></code></pre>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"displace_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"displace p-value"</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0vs2:    "</span>,<span class="st">"0vs4:    "</span>,<span class="st">"0vs8:    "</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'c'</span>,<span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">displace_spot2gex</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span><span class="va">X</span><span class="op">$</span><span class="va">p.value</span><span class="op">}</span><span class="op">)</span><span class="op">)</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "displace p-value"  "0vs2:     0.63127" "0vs4:     0.30681"</span>
-<span class="co">## [4] "0vs8:     0.04463"</span></code></pre>
-<div class="figure">
-<img src="./similarity_validation.png" alt=""><p class="caption">Similarity validation</p>
-</div>
-<p>Similarity testing is used to evaluate how similar displaced image
-spots are to the experimentally observed spot (for example, when both
-images overlap). It is expected that similar spots should not be
-statistically significantly different in gene expression levels.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Spatial similarity testing</span>
-
-<span class="va">similar_spot2gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>
-<span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
-
-  <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span><span class="op">{</span>
-    <span class="va">similar_val.x</span> <span class="op">=</span> <span class="op">-</span><span class="fl">3</span>
-    <span class="va">similar_val.y</span> <span class="op">=</span> <span class="op">-</span><span class="fl">3</span>
-  <span class="op">}</span>
-  <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="fl">2</span><span class="op">)</span><span class="op">{</span>
-    <span class="va">similar_val.x</span> <span class="op">=</span> <span class="fl">3</span>
-    <span class="va">similar_val.y</span> <span class="op">=</span> <span class="op">-</span><span class="fl">3</span>
-  <span class="op">}</span>
-  <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="fl">3</span><span class="op">)</span><span class="op">{</span>
-    <span class="va">similar_val.x</span> <span class="op">=</span> <span class="op">-</span><span class="fl">3</span>
-    <span class="va">similar_val.y</span> <span class="op">=</span> <span class="fl">3</span>
-  <span class="op">}</span>
-  <span class="kw">if</span> <span class="op">(</span><span class="va">i</span><span class="op">==</span><span class="fl">4</span><span class="op">)</span><span class="op">{</span>
-    <span class="va">similar_val.x</span> <span class="op">=</span> <span class="fl">3</span>
-    <span class="va">similar_val.y</span> <span class="op">=</span> <span class="fl">3</span>
-  <span class="op">}</span>
-
-  <span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">displacement_x</span> <span class="op">&lt;-</span> <span class="va">similar_val.x</span>
-  <span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">displacement_y</span> <span class="op">&lt;-</span> <span class="va">similar_val.y</span>
-
-  <span class="va">similar_test_spot_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_spot.html">prepare_spot</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">test_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-
-  <span class="va">similar_spot2gex</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/genecoder.html">genecoder</a></span><span class="op">(</span>model<span class="op">=</span><span class="va">genecoder.model</span>, x <span class="op">=</span> <span class="va">similar_test_spot_data</span><span class="op">$</span><span class="va">spot</span>, config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-<span class="op">}</span>
-
-
-<span class="va">similar_spot2gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="fu">t.test_difference_obs</span><span class="op">(</span>true_obs <span class="op">=</span> <span class="va">test_gex_data</span><span class="op">$</span><span class="va">gex</span>, a <span class="op">=</span> <span class="va">similar_spot2gex</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, b <span class="op">=</span> <span class="va">similar_spot2gex</span><span class="op">[[</span><span class="va">X</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">similar_spot2gex</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"similar_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">meta_info_list</span><span class="op">$</span><span class="va">gex</span><span class="op">$</span><span class="va">factor</span><span class="op">$</span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="va">test_gex_data</span><span class="op">$</span><span class="va">labels</span></span></code></pre></div>
+<p>Save relevant information, including the model, the test meta
+information, the test file list and the test gene expression data. This
+is to analyse results later.</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">base_test_spot_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_spot.html">prepare_spot</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">test_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span>, gex_data <span class="op">=</span> <span class="va">test_gex_data</span><span class="op">$</span><span class="va">gex</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "Extracting spots"</span></span>
+<span><span class="co">## [1] "Preparing spot      1"</span></span>
+<span><span class="co">## [1] "Preparing spot      2"</span></span>
+<span><span class="co">## [1] "Preparing spot      3"</span></span>
+<span><span class="co">## [1] "Preparing spot      4"</span></span>
+<span><span class="co">## [1] "Preparing spot      5"</span></span>
+<span><span class="co">## [1] "Preparing spot      6"</span></span>
+<span><span class="co">## [1] "Preparing spot      7"</span></span>
+<span><span class="co">## [1] "Done preparation!"</span></span></code></pre>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"similar_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"similar p-value"</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0,0vs(-)3,(-)3:    "</span>,<span class="st">"0,0vs3,(-)3:    "</span>,<span class="st">"0,0vs(-)3,3:    "</span>,<span class="st">"0,0vs3,3:    "</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'c'</span>,<span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">similar_spot2gex</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span><span class="va">X</span><span class="op">$</span><span class="va">p.value</span><span class="op">}</span><span class="op">)</span><span class="op">)</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] "similar p-value"             "0,0vs(-)3,(-)3:     0.61131"</span>
-<span class="co">## [3] "0,0vs3,(-)3:     0.5161"     "0,0vs(-)3,3:     0.21426"   </span>
-<span class="co">## [5] "0,0vs3,3:     0.61131"</span></code></pre>
-<div class="figure">
-<img src="signal_validation.png" alt=""><p class="caption">Signal validation</p>
+<code class="sourceCode R"><span><span class="va">non_zero_markers</span> <span class="op">&lt;-</span> <span class="va">base_test_spot_data</span><span class="op">$</span><span class="va">gex</span><span class="op">&gt;</span><span class="fl">0</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save.image</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"all_genecoder.RData"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>Signal testing is used to evaluate how gene expression signals change
-over a spatial region when the example image spot slides over a spatial
-region. It is expected that the gene expression should represent a
-signal, such that a smoothing model can be learned with a reasonable and
-flexible fit.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Spatial signal testing</span>
-
-<span class="va">signal_spot2gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>
-<span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
-
-  <span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">displacement_x</span> <span class="op">&lt;-</span> <span class="va">i</span>
-  <span class="va">genecoder.config</span><span class="op">$</span><span class="va">extract_spots</span><span class="op">$</span><span class="va">displacement_y</span> <span class="op">&lt;-</span> <span class="fl">0</span>
-
-  <span class="va">signal_test_spot_data</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_spot.html">prepare_spot</a></span><span class="op">(</span>file_path_list <span class="op">=</span> <span class="va">test_file_path_list</span>,meta_info_list <span class="op">=</span> <span class="va">meta_info_list</span>,config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-
-  <span class="va">signal_spot2gex</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">i</span><span class="op">)</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">GeneCodeR</span><span class="fu">::</span><span class="fu"><a href="../reference/genecoder.html">genecoder</a></span><span class="op">(</span>model<span class="op">=</span><span class="va">genecoder.model</span>, x <span class="op">=</span> <span class="va">signal_test_spot_data</span><span class="op">$</span><span class="va">spot</span>, config <span class="op">=</span> <span class="va">genecoder.config</span><span class="op">)</span>
-<span class="op">}</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">signal_spot2gex</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"signal_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span>
-
-
-<span class="va">number_of_top_variable_genes_to_extract_adj.r.squared</span> <span class="op">&lt;-</span> <span class="fl">3</span>
-
-<span class="va">spline_signal_adj.r.squared</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'rbind'</span>,<span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">test_gex_data</span><span class="op">$</span><span class="va">gex</span>,<span class="fl">2</span>,<span class="va">var</span><span class="op">)</span>,decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">number_of_top_variable_genes_to_extract_adj.r.squared</span><span class="op">]</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">{</span>
-  <span class="va">internal.adj.r2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'c'</span>,<span class="fu">pbmcapply</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pbmcapply/man/pbmclapply.html" class="external-link">pbmclapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">signal_spot2gex</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">Z</span><span class="op">)</span><span class="op">{</span>
-    <span class="va">signal_spline</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>gene_level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'c'</span>,<span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-      <span class="va">signal_spot2gex</span><span class="op">[[</span><span class="va">X</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="va">Z</span>,<span class="va">Y</span><span class="op">]</span>
-    <span class="op">}</span><span class="op">)</span><span class="op">)</span>,displacement<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span>
-    <span class="va">adj.r.squared</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">npreg</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/npreg/man/summary.html" class="external-link">summary.ss</a></span><span class="op">(</span><span class="fu">npreg</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/npreg/man/ss.html" class="external-link">ss</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">signal_spline</span><span class="op">$</span><span class="va">gene_level</span>,y <span class="op">=</span> <span class="va">signal_spline</span><span class="op">$</span><span class="va">displacement</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">adj.r.squared</span>,silent <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>
-    <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">is.character</a></span><span class="op">(</span><span class="va">signal_spline</span><span class="op">)</span><span class="op">)</span><span class="op">{</span>
-      <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">adj.r.squared</span><span class="op">)</span><span class="op">)</span>
-    <span class="op">}</span>
-  <span class="op">}</span>,mc.cores <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span>
-<span class="op">}</span><span class="op">)</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/save.html" class="external-link">save</a></span><span class="op">(</span><span class="va">spline_signal_adj.r.squared</span>,file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"spline_signal_adj.r.squared.RData"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"signal_spot2gex.RData"</span><span class="op">)</span><span class="op">)</span>
-
-  
-<span class="va">signal_spline</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>gene_level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">'c'</span>,<span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>,<span class="kw">function</span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">{</span>
-  <span class="va">signal_spot2gex</span><span class="op">[[</span><span class="va">X</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">]</span>
-<span class="op">}</span><span class="op">)</span><span class="op">)</span>,displacement<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">mod.ss</span> <span class="op">&lt;-</span> <span class="fu">npreg</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/npreg/man/summary.html" class="external-link">summary.ss</a></span><span class="op">(</span><span class="fu">npreg</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/npreg/man/ss.html" class="external-link">ss</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">signal_spline</span><span class="op">$</span><span class="va">gene_level</span>,y <span class="op">=</span> <span class="va">signal_spline</span><span class="op">$</span><span class="va">displacement</span><span class="op">)</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">signal_spline</span><span class="op">$</span><span class="va">gene_level</span> <span class="op">~</span> <span class="va">signal_spline</span><span class="op">$</span><span class="va">displacement</span>, main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Adj.R-squared:    "</span>,<span class="va">mod.ss</span><span class="op">$</span><span class="va">adj.r.squared</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">signal_spline</span><span class="op">$</span><span class="va">gene_level</span>, <span class="va">mod.ss</span><span class="op">$</span><span class="va">y</span>, lty <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
-<p><img src="analysis_of_spatial_transcriptomics_files/figure-html/plot_signal_1-1.png" width="700"></p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span>sep<span class="op">=</span><span class="st">""</span>,<span class="va">path_to_save</span>,<span class="st">"spline_signal_adj.r.squared.RData"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">title_name</span> <span class="op">=</span> <span class="st">"spatial_signal"</span>
-<span class="va">tissue_name</span> <span class="op">=</span> <span class="st">"breast"</span>
-
-<span class="va">first_most_variable_gene</span> <span class="op">=</span> <span class="va">spline_signal_adj.r.squared</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span>
-<span class="va">second_most_variable_gene</span> <span class="op">=</span> <span class="va">spline_signal_adj.r.squared</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span>
-<span class="va">third_most_variable_gene</span> <span class="op">=</span> <span class="va">spline_signal_adj.r.squared</span><span class="op">[</span><span class="fl">3</span>,<span class="op">]</span>
-
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
-
-<span class="va">lm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span>,
-            <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span>,
-            <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span>
-
-<span class="va">g1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Measure<span class="op">=</span><span class="va">first_most_variable_gene</span>,Metric<span class="op">=</span><span class="st">"Adj.R.Squared of Spline fits \n 1st most variable gene \n across all spatial spots"</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">Metric</span>,y<span class="op">=</span><span class="va">Measure</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> 
-
-<span class="va">g2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Measure<span class="op">=</span><span class="va">second_most_variable_gene</span>,Metric<span class="op">=</span><span class="st">"Adj.R.Squared of Spline fits \n 2nd most variable gene \n across all spatial spots"</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">Metric</span>,y<span class="op">=</span><span class="va">Measure</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> 
-
-<span class="va">g3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Measure<span class="op">=</span><span class="va">third_most_variable_gene</span>,Metric<span class="op">=</span><span class="st">"Adj.R.Squared of Spline fits \n 3rd most variable gene \n across all spatial spots"</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">Metric</span>,y<span class="op">=</span><span class="va">Measure</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span> 
-
-<span class="va">gg_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">g1</span>,<span class="va">g2</span>,<span class="va">g3</span><span class="op">)</span>
-
-<span class="va">final_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html" class="external-link">arrangeGrob</a></span><span class="op">(</span>
-  grobs <span class="op">=</span> <span class="va">gg_plots</span>,
-  layout_matrix <span class="op">=</span> <span class="va">lm</span>
-<span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## Warning: Removed 1569 rows containing non-finite values (stat_ydensity).</span></code></pre>
-<pre><code><span class="co">## Warning: Removed 1549 rows containing non-finite values (stat_ydensity).</span></code></pre>
-<pre><code><span class="co">## Warning: Removed 742 rows containing non-finite values (stat_ydensity).</span></code></pre>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">final_plots</span><span class="op">)</span></code></pre></div>
-<p><img src="analysis_of_spatial_transcriptomics_files/figure-html/plot_signal_2-1.png" width="700"></p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="va">final_plots</span>,filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">path_to_save</span>,<span class="st">"/jpeg_accuracy_gcode_"</span>,<span class="va">tissue_name</span>,<span class="st">"_SPATIAL/"</span>,<span class="va">title_name</span>,<span class="st">"_accuracy_"</span>,<span class="va">tissue_name</span>,<span class="st">"_spatial.png"</span>,sep<span class="op">=</span><span class="st">""</span><span class="op">)</span>,width <span class="op">=</span> <span class="fl">7</span>,height<span class="op">=</span><span class="fl">5</span><span class="op">)</span></code></pre></div>
-<p>Together, given the results are consistent with the expected output
-based on a reasonable, flexible and appropriate model that learns
-relevant information - GeneCodeR based on wrapping Generative Encoders,
-can be considered an acceptable model for image analysis.
-Transformational perturbations between gene expression and images, as
-well as, other modalities based on current and future technologies is an
-exciting development for spatial biology.</p>
-</div>
-  </main>
+  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
@@ -617,8 +572,7 @@ exciting development for spatial biology.</p>
 
 <div class="pkgdown-footer-right">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
     </footer>

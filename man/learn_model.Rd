@@ -8,7 +8,6 @@ learn_model(
   data_list,
   config = gcode::extract_config(F),
   transfer = gcode::extract_transfer_framework(F),
-  recover = gcode::extract_recovery_framework(F),
   join,
   reference
 )
@@ -19,8 +18,6 @@ learn_model(
 \item{config}{Configuration parameters (required, default provided)}
 
 \item{transfer}{Transferring pre-trained model parameters (not required)}
-
-\item{recover}{Important information used for prediction or imputation (not required)}
 
 \item{join}{Join parameters that share the same axes to be similar (not required)
 
