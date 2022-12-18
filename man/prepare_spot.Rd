@@ -4,7 +4,7 @@
 \alias{prepare_spot}
 \title{prepare_spot - prepares image information per spot}
 \usage{
-prepare_spot(file_path_list, meta_info_list, config)
+prepare_spot(file_path_list, meta_info_list, config, gex_data)
 }
 \arguments{
 \item{file_path_list}{- a list of files containing the path to all files including the image path}

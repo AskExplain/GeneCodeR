@@ -4,7 +4,7 @@
 \alias{genecoder.transform}
 \title{genecoder.transform - transform between modalities}
 \usage{
-genecoder.transform(model, x, config.transform)
+genecoder.transform(model, x, model_type, config.transform)
 }
 \arguments{
 \item{model}{- the learned model via Generative Encoding}

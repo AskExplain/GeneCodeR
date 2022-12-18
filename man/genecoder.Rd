@@ -4,7 +4,7 @@
 \alias{genecoder}
 \title{GeneCodeR - Perturbing imaging tissue by altering spatial gene codes}
 \usage{
-genecoder(model, x, config)
+genecoder(model, x, model_type, config)
 }
 \arguments{
 \item{model}{- the learned model via Generative Encoding}

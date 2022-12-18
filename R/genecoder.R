@@ -24,20 +24,16 @@ genecoder <- function(model,x,model_type,config){
 genecoder.transform <- function(model,x,model_type,config.transform){
 
   if (model_type == "gcode"){
-    beta.2_signal <- (model$main.parameters$beta_signal[[config.transform$from]])
-    beta.1_signal <- (model$main.parameters$beta_signal[[config.transform$to]])
+    
+    beta.2_sample <- as.matrix(model$main.parameters$beta_sample[[config.transform$from]])
+    beta.1_sample <- as.matrix(model$main.parameters$beta_sample[[config.transform$to]])
+    
+    intercept.2_sample <- c(model$main.parameters$intercept[[config.transform$from]])
+    intercept.1_sample <- c(model$main.parameters$intercept[[config.transform$to]])
+    
+    sample_obs <- as.matrix(x-intercept.2_sample)%*%beta.2_sample%*%MASS::ginv(t(beta.2_sample)%*%(beta.2_sample))%*%t(beta.1_sample) + intercept.1_sample
 
-    beta.2_sample <- (model$main.parameters$beta_sample[[config.transform$from]])
-    beta.1_sample <- (model$main.parameters$beta_sample[[config.transform$to]])
-
-    signal2sample_obs <- as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2_signal%*%MASS::ginv(t(beta.2_signal)%*%(beta.2_signal))%*%t(beta.1_sample) + c(model$main.parameters$intercept[[config.transform$to]])
-    sample2signal_obs <- as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2_sample%*%MASS::ginv(t(beta.2_sample)%*%(beta.2_sample))%*%t(beta.1_signal) + c(model$main.parameters$intercept[[config.transform$to]])
-
-    sample_obs <- as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2_sample%*%MASS::ginv(t(beta.2_sample)%*%(beta.2_sample))%*%t(beta.1_sample) + c(model$main.parameters$intercept[[config.transform$to]])
-    signal_obs <- as.matrix((x) - c(model$main.parameters$intercept[[config.transform$from]]))%*%beta.2_signal%*%MASS::ginv(t(beta.2_signal)%*%(beta.2_signal))%*%t(beta.1_signal) + c(model$main.parameters$intercept[[config.transform$to]])
-
-
-    return((sample_obs + signal_obs + sample2signal_obs + signal2sample_obs)/4)
+    return(sample_obs)
   }
 
 }
@@ -48,18 +44,16 @@ genecoder.transform <- function(model,x,model_type,config.transform){
 #' @param data_list List of data matrices of varying dimensionality. Attempts to find similarities among all datasets with a core structure.
 #' @param config Configuration parameters (required, default provided)
 #' @param transfer Transferring pre-trained model parameters (not required)
-#' @param recover Important information used for prediction or imputation (not required)
 #' @param join Join parameters that share the same axes to be similar (not required)
 #'
 #'#' @export
 learn_model <- function(data_list,
                         config = gcode::extract_config(F),
                         transfer = gcode::extract_transfer_framework(F),
-                        recover = gcode::extract_recovery_framework(F),
                         join,
                         reference){
 
-  gcode.model <- gcode::gcode(data_list = data_list, config = config, transfer = transfer, recover = recover, join = join, reference = reference)
+  gcode.model <- gcode::gcode(data_list = data_list, config = config, transfer = transfer, join = join, reference = reference)
 
   return(gcode.model)
 
